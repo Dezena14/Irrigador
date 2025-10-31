@@ -2,6 +2,6 @@
 
 ## Estrutura do Projeto
 
-- `firmware/`: Código Arduino para controle do hardware
-- `irrigation-api/`: Backend em Spring Boot
-- `irrigation-web/`: Frontend em React
+- `irrigador-firmware/`: Firmware para controle do hardware
+- `irrigador-api/`: Back-end em Spring Boot
+- `irrigador-front/`: Front-end em React

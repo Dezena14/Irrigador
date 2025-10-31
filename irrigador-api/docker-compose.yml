@@ -1,0 +1,49 @@
+services:
+  # Serviço do Banco de Dados PostgreSQL
+  postgres-db:
+    image: postgres:latest
+    container_name: postgres-db
+    restart: always
+    environment:
+      POSTGRES_USER: admin # Suas credenciais
+      POSTGRES_PASSWORD: admin # Suas credenciais
+      POSTGRES_DB: irrigador_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - irrigador-pg-data:/var/lib/postgresql/data
+    networks:
+      - irrigador-net
+
+  # Serviço da Interface Gráfica PgAdmin
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: pgadmin
+    restart: always
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8081:80"
+    networks:
+      - irrigador-net
+    depends_on:
+      - postgres-db
+
+  #Serviço do RabbitMQ
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    restart: always
+    ports:
+      - "5672:5672"   # Porta para a aplicação Spring se conectar
+      - "15672:15672" # Porta para a interface web de gerenciamento
+      - "1883:1883"   # Porta para o protocolo MQTT (para o NodeMCU no futuro)
+    networks:
+      - irrigador-net
+networks:
+  irrigador-net:
+    driver: bridge
+
+volumes:
+  irrigador-pg-data: {}
