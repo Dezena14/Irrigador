@@ -1,19 +1,13 @@
-package com.irrigador.irrigador.model;
+package com.irrigador.irrigador.dto;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-@Entity
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class SystemSettings {
-
-    @Id
-    private Long id;
+public class SystemSettingsDto {
 
     private String locationName;
     private String latitude;

@@ -1,5 +1,7 @@
 package com.irrigador.irrigador.service;
 
+import com.irrigador.irrigador.dto.ModuleStatusUpdateDto;
+import com.irrigador.irrigador.dto.SystemSettingsDto;
 import com.irrigador.irrigador.model.Module;
 import com.irrigador.irrigador.model.SystemSettings;
 import com.irrigador.irrigador.repository.SystemSettingsRepository;
@@ -20,8 +22,6 @@ public class SystemLogicService {
     private final SystemSettingsRepository settingsRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
-    private static final int LIMIAR_CHANCE_CHUVA = 90;
-
     private boolean isSystemActive = true;
 
     public boolean isSystemActive() {
@@ -33,7 +33,7 @@ public class SystemLogicService {
     }
 
     @Scheduled(initialDelay = 10000, fixedRate = 60000)
-    public void UpdateModulesStatus() {
+    public void updateModulesStatus() {
         System.out.println("[SystemLogicService] Verificando e atualizando status dos módulos...");
 
         SystemSettings settings = settingsRepository.findById(1L).orElse(null);
@@ -43,10 +43,11 @@ public class SystemLogicService {
         }
 
         Integer chanceOfRain = weatherService.getChanceOfRain(settings.getLatitude(), settings.getLongitude());
-        boolean isRainy = chanceOfRain != null && chanceOfRain > LIMIAR_CHANCE_CHUVA;
+        boolean isRainy = chanceOfRain != null && chanceOfRain > settings.getRainThreshold();
 
         List <Module> modules = moduleService.findAllModules();
         List <Module> modulesToUpdate = new ArrayList<>();
+        List<ModuleStatusUpdateDto> statusUpdates = new ArrayList<>();
 
         for(Module module : modules) {
             String oldStatus = module.getStatus();
@@ -55,13 +56,17 @@ public class SystemLogicService {
             if (!newStatus.equals(oldStatus)) {
                 module.setStatus(newStatus);
                 modulesToUpdate.add(module);
+                statusUpdates.add(new ModuleStatusUpdateDto(module.getId(), newStatus));
             }
         }
 
         if (!modulesToUpdate.isEmpty()) {
             moduleService.saveAllModules(modulesToUpdate);
             System.out.println("[SystemLogicService] Status de " + modulesToUpdate.size() + " módulos foram atualizados.");
-            messagingTemplate.convertAndSend("/topic/module-update", moduleService.findAllModules());
+
+            statusUpdates.forEach(update -> {
+                messagingTemplate.convertAndSend("/topic/module-update", update);
+            });
         } else {
             System.out.println("[SystemLogicService] Nenhum status de módulo alterado.");
         }
@@ -88,5 +93,21 @@ public class SystemLogicService {
         } else {
             return "desligado";
         }
+    }
+
+    public SystemSettings getSystemSettings() {
+        return settingsRepository.findById(1L)
+                .orElseThrow(() -> new RuntimeException("Configurações do sistema não encontradas"));
+    }
+
+    public SystemSettings updateSystemSettings(SystemSettingsDto settingsDto) {
+        SystemSettings settings = getSystemSettings();
+
+        settings.setLocationName(settingsDto.getLocationName());
+        settings.setLatitude(settingsDto.getLatitude());
+        settings.setLongitude(settingsDto.getLongitude());
+        settings.setRainThreshold(settingsDto.getRainThreshold());
+
+        return settingsRepository.save(settings);
     }
 }

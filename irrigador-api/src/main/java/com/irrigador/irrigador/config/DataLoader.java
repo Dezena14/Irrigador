@@ -52,6 +52,7 @@ public class DataLoader implements CommandLineRunner {
             settings.setLocationName("Bonfim Paulista, SP");
             settings.setLatitude("-21.264");
             settings.setLongitude("-47.8169");
+            settings.setRainThreshold(90);
             settingsRepository.save(settings);
 
             System.out.println("Configurações iniciais so sistema carregadas");

@@ -1,5 +1,6 @@
 package com.irrigador.irrigador.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -27,5 +28,6 @@ public class Module {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @JsonIgnore
     private List <HumidityHistory> history = new ArrayList<>();
 }

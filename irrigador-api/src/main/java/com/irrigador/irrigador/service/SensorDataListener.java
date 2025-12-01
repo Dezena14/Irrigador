@@ -1,5 +1,6 @@
 package com.irrigador.irrigador.service;
 
+import com.irrigador.irrigador.dto.ModuleStatusUpdateDto;
 import com.irrigador.irrigador.dto.SensorDataDto;
 import com.irrigador.irrigador.model.Module;
 import lombok.RequiredArgsConstructor;
@@ -26,8 +27,10 @@ public class SensorDataListener {
         Module updatedModule = moduleService.updateModuleHumidity(data.getModuleId(), data.getHumidity());
 
         if (updatedModule != null) {
-            System.out.println(">>> Enviando atualização via WebSocket: " + updatedModule);
-            messagingTemplate.convertAndSend("/topic/module-update\", updatedModule");
+            messagingTemplate.convertAndSend("/topic/module-update",
+                    new ModuleStatusUpdateDto(updatedModule.getId(), updatedModule.getStatus())
+            );
+            messagingTemplate.convertAndSend("/topic/humidity-update", data);
         }
     }
 }

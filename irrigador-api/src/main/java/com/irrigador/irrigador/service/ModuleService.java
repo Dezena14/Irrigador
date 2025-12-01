@@ -7,6 +7,7 @@ import com.irrigador.irrigador.repository.HumidityHistoryRepository;
 import com.irrigador.irrigador.repository.ModuleRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class ModuleService {
 
     private final ModuleRepository moduleRepository;
     private final HumidityHistoryRepository historyRepository;
+    private final CommandPublisherService commandPublisherService;
 
     public List<Module> findAllModules() {
         return moduleRepository.findAll();
@@ -65,6 +67,7 @@ public class ModuleService {
         return historyRepository.findByModuleIdOrderByTimestampDesc(moduleId);
     }
 
+    @Transactional
     public Module toggleManualOverride(Long id) {
         return moduleRepository.findById(id)
                 .map(module -> {
@@ -73,6 +76,37 @@ public class ModuleService {
                     } else {
                         module.setManualOverride("on");
                     }
+                    Module updatedModule = moduleRepository.save(module);
+                    String action = "on".equals(updatedModule.getManualOverride()) ? "on" : "off";
+                    commandPublisherService.sendManualIrrigationCommand(updatedModule.getId(), action);
+                    return updatedModule;
+                })
+                .orElseThrow(() -> new RuntimeException("Módulo não encontrado com id: " + id));
+    }
+
+    public Module updateModulePartial(Long id, ModuleDto dto) {
+        return moduleRepository.findById(id)
+                .map(module -> {
+                    boolean stateChanged = false;
+
+                    if (dto.getName() != null) {
+                        module.setName(dto.getName());
+                    }
+
+                    if (dto.getHumidityThreshold() != null) {
+                        module.setHumidityThreshold(dto.getHumidityThreshold());
+                    }
+
+                    if (dto.getManualOverride() != null) {
+                        String newState = "off".equalsIgnoreCase(dto.getManualOverride()) ? null : "on";
+                        module.setManualOverride(newState);
+
+                        String mqttCommand = (newState == null) ? "off" : "on";
+                        commandPublisherService.sendManualIrrigationCommand(module.getId(), mqttCommand);
+
+                        stateChanged = true;
+                    }
+
                     return moduleRepository.save(module);
                 })
                 .orElseThrow(() -> new RuntimeException("Módulo não encontrado com id: " + id));

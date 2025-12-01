@@ -5,5 +5,6 @@ import lombok.Data;
 @Data
 public class ModuleDto {
     private String name;
-    private int humidityThreshold;
+    private Integer humidityThreshold;
+    private String manualOverride;
 }
