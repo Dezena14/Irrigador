@@ -1,11 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Pencil,
     Save,
     Wifi,
     WifiOff,
     Droplets,
-    Power,
     X,
     History,
     Trash2,
@@ -14,7 +13,7 @@ import LineChart from "./LineChart";
 import Card from "../common/Card";
 import Input from "../common/Input";
 import Button from "../common/Button";
-import { updateModule } from "../../api/services";
+import { updateModule, fetchModuleHistory } from "../../api/services";
 
 const ModuleCard = ({
     module,
@@ -27,10 +26,23 @@ const ModuleCard = ({
     const [limiarValue, setLimiarValue] = useState(module.humidityThreshold);
     const [isEditingName, setIsEditingName] = useState(false);
     const [nameValue, setNameValue] = useState(module.name);
+    const [previewHistory, setPreviewHistory] = useState([]);
     const isHardwareOffline = module.hardwareStatus === "offline";
 
+    useEffect(() => {
+        const loadPreviewHistory = async () => {
+            if (isHardwareOffline) return;
+            try {
+                const history = await fetchModuleHistory(module.id);
+                setPreviewHistory(history.slice(0, 7).reverse());
+            } catch (e) {
+                console.error("Falha ao buscar preview:", e);
+            }
+        };
+        loadPreviewHistory();
+    }, [module.id, isHardwareOffline]);
+
     const handleSave = async (type) => {
-        // Transforme em async
         if (type === "name" && nameValue.trim()) {
             const updatedData = {
                 name: nameValue.trim(),
@@ -187,11 +199,7 @@ const ModuleCard = ({
                 className="mt-4 h-32 relative cursor-pointer group"
                 onClick={() => !isHardwareOffline && onShowHistory(module)}
             >
-                <LineChart
-                    data={(module.history || [])
-                        .slice(-7)
-                        .map((h) => h.humidity)}
-                />
+                <LineChart data={previewHistory} />
                 <div className="absolute inset-0 bg-black/20 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded-lg">
                     <History className="text-white" size={32} />
                 </div>

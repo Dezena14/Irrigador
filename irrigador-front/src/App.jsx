@@ -16,6 +16,7 @@ import { useTheme } from "./hooks/useTheme";
 import { useWeather } from "./hooks/useWeather";
 import { useNotifications } from "./hooks/useNotifications";
 import { useIrrigationSystem } from "./hooks/useIrrigationSystem";
+import { useSystemSettings } from "./hooks/useSystemSettings";
 import MainLayout from "./components/layout/MainLayout";
 import ModulesPage from "./components/pages/ModulesPage";
 import AnalyticsPage from "./components/pages/AnalyticsPage";
@@ -34,7 +35,6 @@ ChartJS.register(
 
 export default function App() {
     const { theme, toggleTheme } = useTheme();
-    const { location, setLocation, weather } = useWeather();
     const {
         notifications,
         setNotifications,
@@ -43,8 +43,10 @@ export default function App() {
         notificationRef,
         addNotification,
     } = useNotifications();
+    const settings = useSystemSettings(addNotification);
+    const { weather } = useWeather(settings.location);
     const { modules, setModules, isSystemActive, handleToggleSystem } =
-        useIrrigationSystem(weather, addNotification);
+        useIrrigationSystem(addNotification);
 
     const [activeView, setActiveView] = useState("modules");
     const [waterCost, setWaterCost] = useState(5.0);
@@ -70,8 +72,7 @@ export default function App() {
                     isSystemActive={isSystemActive}
                     setIsSystemActive={handleToggleSystem}
                     addNotification={addNotification}
-                    location={location}
-                    setLocation={setLocation}
+                    settings={settings}
                 />
             ) : (
                 <AnalyticsPage

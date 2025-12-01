@@ -44,13 +44,29 @@ export const LineChart = ({ data, isDetailed = false }) => {
         gradient.addColorStop(0, "rgba(34, 197, 94, 0.5)");
         gradient.addColorStop(1, "rgba(34, 197, 94, 0)");
 
+        let labels = [];
+        const humidityData = data.map((h) => h.humidity);
+
+        if (isDetailed) {
+            labels = data
+                .map((h) =>
+                    new Date(h.timestamp).toLocaleDateString("pt-BR", {
+                        day: "2-digit",
+                        month: "2-digit",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                    })
+                )
+                .reverse();
+        } else {
+            labels = Array(data.length).fill("");
+        }
+
         setChartData({
-            labels: isDetailed
-                ? data.map((_, i) => `${30 - i}d atrás`)
-                : Array.from({ length: 7 }).fill(""),
+            labels: labels,
             datasets: [
                 {
-                    data: data,
+                    data: humidityData.reverse(),
                     borderColor: "#22c55e",
                     borderWidth: isDetailed ? 2 : 3,
                     fill: true,

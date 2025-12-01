@@ -84,3 +84,21 @@ export const toggleModuleManualOverride = (moduleId) => {
         method: "POST",
     }).then(handleResponse);
 };
+
+export const deleteModule = (moduleId) => {
+    return fetch(`${API_BASE_URL}/modules/${moduleId}`, {
+        method: "DELETE",
+    }).then(handleResponse);
+};
+
+export const getSystemSettings = () => {
+    return fetch(`${API_BASE_URL}/system/settings`).then(handleResponse);
+};
+
+export const updateSystemSettings = (settingsData) => {
+    return fetch(`${API_BASE_URL}/system/settings`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(settingsData),
+    }).then(handleResponse);
+};

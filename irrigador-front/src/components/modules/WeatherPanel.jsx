@@ -1,5 +1,3 @@
-import React, { useState, useEffect } from "react";
-import { getCoordsFromCityName } from "../../api/services";
 import {
     Cloud,
     CloudFog,
@@ -22,35 +20,20 @@ import Card from "../common/Card";
 import Input from "../common/Input";
 import Button from "../common/Button";
 
-const WeatherPanel = ({ weather, location, setLocation }) => {
-    const [inputCity, setInputCity] = useState(location.name);
-    const [isSearching, setIsSearching] = useState(false);
-    const [isEditingCity, setIsEditingCity] = useState(false);
-
-    useEffect(() => {
-        setInputCity(location.name);
-    }, [location]);
-
-    const handleSearch = async () => {
-        if (!inputCity.trim()) return;
-        setIsSearching(true);
-        const newLocation = await getCoordsFromCityName(inputCity);
-        setIsSearching(false);
-        if (newLocation) {
-            setLocation(newLocation);
-            setIsEditingCity(false);
-        } else {
-            alert("Cidade não encontrada. Tente novamente.");
-            setInputCity(location.name);
-        }
-    };
-
-    const handleCancelEdit = () => {
-        setInputCity(location.name);
-        setIsEditingCity(false);
-    };
-
-    if (weather.loading) {
+const WeatherPanel = ({
+    weather,
+    location,
+    isEditing,
+    setIsEditing,
+    isLoading,
+    inputCity,
+    setInputCity,
+    inputThreshold,
+    setInputThreshold,
+    handleSave,
+    handleCancel,
+}) => {
+    if (weather.loading || !location || location.name === "Carregando...") {
         return (
             <Card className="text-center">
                 <LoaderCircle
@@ -61,6 +44,7 @@ const WeatherPanel = ({ weather, location, setLocation }) => {
             </Card>
         );
     }
+
     if (!weather.data) {
         return (
             <Card className="text-center bg-red-100 dark:bg-red-900/50">
@@ -118,48 +102,62 @@ const WeatherPanel = ({ weather, location, setLocation }) => {
     return (
         <Card>
             <div className="flex justify-between items-center mb-4 min-h-[40px]">
-                {isEditingCity ? (
-                    <div className="flex items-center gap-2 w-full">
-                        <Input
-                            type="text"
-                            value={inputCity}
-                            onChange={(e) => setInputCity(e.target.value)}
-                            onKeyDown={(e) =>
-                                e.key === "Enter" && handleSearch()
-                            }
-                            className="flex-grow"
-                            autoFocus
-                        />
-                        <Button
-                            onClick={handleSearch}
-                            disabled={isSearching}
-                            variant="primary"
-                            className="p-2"
-                        >
-                            {isSearching ? (
-                                <LoaderCircle
-                                    size={16}
-                                    className="animate-spin"
-                                />
-                            ) : (
-                                <Save size={16} />
-                            )}
-                        </Button>
-                        <Button
-                            onClick={handleCancelEdit}
-                            variant="danger"
-                            className="p-2 bg-red-500 text-white hover:bg-red-600"
-                        >
-                            <X size={16} />
-                        </Button>
+                {isEditing ? (
+                    // --- MODO DE EDIÇÃO ---
+                    <div className="flex flex-col gap-4 w-full">
+                        <div>
+                            <label className="text-sm font-medium dark:text-gray-300">
+                                Cidade
+                            </label>
+                            <Input
+                                type="text"
+                                value={inputCity}
+                                onChange={(e) => setInputCity(e.target.value)}
+                                className="w-full"
+                                autoFocus
+                            />
+                        </div>
+                        <div>
+                            <label className="text-sm font-medium dark:text-gray-300">
+                                Pausar irrigação se % de chuva for:{" "}
+                            </label>
+                            <Input
+                                type="number"
+                                value={inputThreshold}
+                                onChange={(e) =>
+                                    setInputThreshold(e.target.value)
+                                }
+                                className="w-full text-center"
+                            />
+                        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button onClick={handleCancel} variant="secondary">
+                                Cancelar
+                            </Button>
+                            <Button
+                                onClick={handleSave}
+                                disabled={isLoading}
+                                variant="primary"
+                            >
+                                {isLoading ? (
+                                    <LoaderCircle
+                                        size={16}
+                                        className="animate-spin"
+                                    />
+                                ) : (
+                                    "Salvar"
+                                )}
+                            </Button>
+                        </div>
                     </div>
                 ) : (
-                    <div className="flex items-center gap-2 group">
+                    // --- MODO DE VISUALIZAÇÃO ---
+                    <div className="flex items-center gap-2 group w-full">
                         <h3 className="text-xl font-semibold">
                             Previsão: {location.name}
                         </h3>
                         <button
-                            onClick={() => setIsEditingCity(true)}
+                            onClick={() => setIsEditing(true)}
                             className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 opacity-0 group-hover:opacity-100 transition-opacity"
                         >
                             <Pencil size={14} />
@@ -168,8 +166,9 @@ const WeatherPanel = ({ weather, location, setLocation }) => {
                 )}
             </div>
 
+            {/* --- Painel de Dados --- */}
             <div className="flex items-center gap-4">
-                <div>{getWeatherIcon(icon)}</div>
+                {getWeatherIcon(icon)}
                 <div className="flex-grow">
                     <p className="text-4xl font-bold">{temp}°C</p>
                     <p className="capitalize">{description}</p>
@@ -198,6 +197,7 @@ const WeatherPanel = ({ weather, location, setLocation }) => {
                     </p>
                 </div>
             </div>
+
             <div className="mt-4">
                 <h4 className="text-md font-semibold mb-2">Próximas horas</h4>
                 <div className="grid grid-cols-4 gap-2 text-center">

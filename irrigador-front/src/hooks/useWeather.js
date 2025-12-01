@@ -1,17 +1,13 @@
 import { useState, useEffect } from "react";
 import { fetchWeather } from "../api/services";
 
-export function useWeather() {
-    const [location, setLocation] = useState({
-        name: "Ribeirão Preto, SP",
-        lat: -21.1775,
-        lon: -47.8103,
-    });
+export function useWeather(location) {
     const [weather, setWeather] = useState({ loading: true, data: null });
 
     useEffect(() => {
         const loadWeatherData = async () => {
             if (!location.lat || !location.lon) return;
+
             setWeather({ loading: true, data: null });
             try {
                 const rawData = await fetchWeather(location);
@@ -39,12 +35,12 @@ export function useWeather() {
 
                 setWeather({ loading: false, data: formattedData });
             } catch (error) {
-                console.error("Failed to fetch weather:", error);
+                console.error("Falha ao buscar tempo:", error);
                 setWeather({ loading: false, data: null });
             }
         };
         loadWeatherData();
     }, [location]);
 
-    return { location, setLocation, weather };
+    return { weather };
 }

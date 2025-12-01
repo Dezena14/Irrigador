@@ -9,6 +9,7 @@ import {
     createModule,
     fetchModuleHistory,
     toggleModuleManualOverride,
+    deleteModule,
 } from "../../api/services";
 
 export const ModulesPage = ({
@@ -18,8 +19,7 @@ export const ModulesPage = ({
     isSystemActive,
     setIsSystemActive,
     addNotification,
-    location,
-    setLocation,
+    settings,
 }) => {
     const [modals, setModals] = useState({
         add: false,
@@ -31,9 +31,9 @@ export const ModulesPage = ({
     const [historyData, setHistoryData] = useState([]);
     const [isHistoryLoading, setIsHistoryLoading] = useState(false);
 
-    const handleAddModule = async ({ nome, limiar }) => {
+    const handleAddModule = async ({ name, humidityThreshold }) => {
         try {
-            const moduleData = { name: nome, humidityThreshold: limiar };
+            const moduleData = { name, humidityThreshold };
             const newModuleFromApi = await createModule(moduleData);
 
             setModules((prev) => [...prev, newModuleFromApi]);
@@ -46,11 +46,17 @@ export const ModulesPage = ({
         }
     };
 
-    const handleDeleteModule = (id) => {
+    const handleDeleteModule = async (id) => {
         const moduleName =
-            modules.find((m) => m.id === id)?.nome || "desconhecido";
-        setModules((prev) => prev.filter((m) => m.id !== id));
-        addNotification(`Módulo "${moduleName}" foi removido.`);
+            modules.find((m) => m.id === id)?.name || "desconhecido";
+        try {
+            await deleteModule(id);
+            setModules((prev) => prev.filter((m) => m.id !== id));
+            addNotification(`Módulo "${moduleName}" foi removido.`);
+        } catch (error) {
+            console.error("Falha ao remover módulo:", error);
+            addNotification(`Erro ao remover módulo "${moduleName}".`, true);
+        }
     };
 
     const handleToggleManual = async (id) => {
@@ -79,14 +85,10 @@ export const ModulesPage = ({
 
         try {
             const history = await fetchModuleHistory(module.id);
-            const humidityValues = history.map((h) => h.humidity);
-            setHistoryData(humidityValues);
+            setHistoryData(history);
         } catch (error) {
             console.error("Falha ao buscar histórico:", error);
-            props.addNotification(
-                "Erro ao carregar histórico do módulo.",
-                true
-            );
+            addNotification("Erro ao carregar histórico do módulo.", true);
             setModals((m) => ({ ...m, history: null }));
         } finally {
             setIsHistoryLoading(false);
@@ -136,17 +138,13 @@ export const ModulesPage = ({
                         Painel de Controle
                     </h2>
                     <div className="space-y-6">
-                        <WeatherPanel
-                            weather={weather}
-                            location={location}
-                            setLocation={setLocation}
-                        />
+                        <WeatherPanel weather={weather} {...settings} />
                         <div className="card">
                             <h3 className="text-xl font-semibold pb-2">
                                 Sistema Geral
                             </h3>
                             <button
-                                onClick={() => setIsSystemActive((s) => !s)}
+                                onClick={setIsSystemActive}
                                 className={`w-full flex items-center justify-center gap-2 p-3 text-lg font-bold text-white rounded-lg transition-all ${
                                     isSystemActive
                                         ? "bg-green-500 hover:bg-green-600"
@@ -189,7 +187,7 @@ export const ModulesPage = ({
                 }}
                 title="Confirmar Exclusão"
                 message={`Tem certeza que deseja remover o módulo "${
-                    modules.find((m) => m.id === modals.delete)?.nome
+                    modules.find((m) => m.id === modals.delete)?.name
                 }"? Esta ação não pode ser desfeita.`}
             />
         </>

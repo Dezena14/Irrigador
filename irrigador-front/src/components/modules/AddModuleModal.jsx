@@ -5,8 +5,8 @@ import Input from "../common/Input";
 import Button from "../common/Button";
 
 const AddModuleModal = ({ isOpen, onClose, onAddModule }) => {
-    const [nome, setNome] = useState("");
-    const [limiar, setLimiar] = useState(50);
+    const [name, setName] = useState("");
+    const [humidityThreshold, setHumidityThreshold] = useState(50);
 
     const plantPresets = [
         "Tomate",
@@ -21,21 +21,21 @@ const AddModuleModal = ({ isOpen, onClose, onAddModule }) => {
     const handlePresetChange = (e) => {
         const plantName = e.target.value;
         if (!plantName) return;
-        setNome(plantName);
+        setName(plantName);
     };
 
     const handleSubmit = (e) => {
         e.preventDefault();
-        if (nome.trim()) {
-            onAddModule({ nome, limiar: parseInt(limiar, 10) });
+        if (name.trim()) {
+            onAddModule({ name, limiar: parseInt(humidityThreshold, 10) });
             onClose();
         }
     };
 
     useEffect(() => {
         if (isOpen) {
-            setNome("");
-            setLimiar(50);
+            setName("");
+            setHumidityThreshold(50);
         }
     }, [isOpen]);
 
@@ -75,8 +75,8 @@ const AddModuleModal = ({ isOpen, onClose, onAddModule }) => {
                     <Input
                         id="plant-name"
                         type="text"
-                        value={nome}
-                        onChange={(e) => setNome(e.target.value)}
+                        value={name}
+                        onChange={(e) => setName(e.target.value)}
                         placeholder="Nome da Planta"
                         required
                     />
@@ -90,8 +90,10 @@ const AddModuleModal = ({ isOpen, onClose, onAddModule }) => {
                         <Input
                             id="plant-threshold"
                             type="number"
-                            value={limiar}
-                            onChange={(e) => setLimiar(e.target.value)}
+                            value={humidityThreshold}
+                            onChange={(e) =>
+                                setHumidityThreshold(e.target.value)
+                            }
                         />
                     </div>
                 </div>

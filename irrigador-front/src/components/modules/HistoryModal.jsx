@@ -2,10 +2,12 @@ import { X, LoaderCircle } from "lucide-react";
 import LineChart from "./LineChart";
 import Card from "../common/Card";
 
-const HistoryModal = ({ module, isOpen, onClose, historyData }) => {
+const HistoryModal = ({ module, isOpen, onClose, historyData, isLoading }) => {
     if (!isOpen || !module) return null;
 
-    const isLoading = !historyData || historyData.length === 0;
+    const showLoading = isLoading;
+    const showEmpty = !isLoading && historyData.length === 0;
+    const showChart = !isLoading && historyData.length > 0;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center p-4 z-50 backdrop-blur-sm">
@@ -22,16 +24,18 @@ const HistoryModal = ({ module, isOpen, onClose, historyData }) => {
                     </button>
                 </div>
                 <div className="h-96">
-                    {isLoading ? (
+                    {showLoading && (
                         <div className="flex items-center justify-center h-full">
                             <LoaderCircle
                                 className="animate-spin text-gray-400"
                                 size={48}
                             />
                         </div>
-                    ) : historyData.length > 0 ? (
+                    )}
+                    {showChart && (
                         <LineChart data={historyData} isDetailed={true} />
-                    ) : (
+                    )}
+                    {showEmpty && (
                         <div className="flex items-center justify-center h-full">
                             <p className="text-gray-500">
                                 Nenhum dado de histórico encontrado para este

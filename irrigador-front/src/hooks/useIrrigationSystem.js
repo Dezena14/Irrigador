@@ -27,20 +27,6 @@ export function useIrrigationSystem(weather, addNotification) {
         });
     }, [addNotification]);
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setModules((prevModules) =>
-                prevModules.map((m) => ({
-                    ...m,
-                    currentHumidity:
-                        m.currentHumidity +
-                        Math.round((Math.random() - 0.5) * 2),
-                }))
-            );
-        }, 5000);
-        return () => clearInterval(interval);
-    }, []);
-
     const handleToggleSystem = () => {
         toggleSystemStatus()
             .then((data) => {
