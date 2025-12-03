@@ -21,6 +21,7 @@ public class SystemLogicService {
     private final WeatherService weatherService;
     private final SystemSettingsRepository settingsRepository;
     private final SimpMessagingTemplate messagingTemplate;
+    private final CommandPublisherService commandPublisherService;
 
     private boolean isSystemActive = true;
 
@@ -57,6 +58,8 @@ public class SystemLogicService {
                 module.setStatus(newStatus);
                 modulesToUpdate.add(module);
                 statusUpdates.add(new ModuleStatusUpdateDto(module.getId(), newStatus));
+
+                handleAutomaticCommand(module, oldStatus, newStatus);
             }
         }
 
@@ -109,5 +112,22 @@ public class SystemLogicService {
         settings.setRainThreshold(settingsDto.getRainThreshold());
 
         return settingsRepository.save(settings);
+    }
+
+    public void handleAutomaticCommand(Module module, String oldStatus, String newStatus) {
+        if (module.getManualOverride() != null) return;
+
+        if ("irrigando".equals(newStatus)) {
+            System.out.println(">>> [Auto] Ligando módulo " + module.getId());
+            commandPublisherService.sendManualIrrigationCommand(module.getId(), "on");
+        }
+        else if ("irrigando".equals(oldStatus)) {
+            System.out.println(">>> [Auto] Desligando módulo " + module.getId());
+            commandPublisherService.sendManualIrrigationCommand(module.getId(), "off");
+        }
+
+        if ("desligado".equals(newStatus)) {
+            commandPublisherService.sendManualIrrigationCommand(module.getId(), "off");
+        }
     }
 }
