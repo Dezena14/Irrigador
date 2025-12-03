@@ -79,9 +79,11 @@ export const fetchModuleHistory = (moduleId) => {
     );
 };
 
-export const toggleModuleManualOverride = (moduleId) => {
-    return fetch(`${API_BASE_URL}/modules/${moduleId}/manual-override`, {
-        method: "POST",
+export const patchModule = (id, partialData) => {
+    return fetch(`${API_BASE_URL}/modules/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(partialData),
     }).then(handleResponse);
 };
 
