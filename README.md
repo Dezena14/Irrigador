@@ -8,17 +8,6 @@ Este projeto é um sistema full-stack de irrigação inteligente desenvolvido co
 
 **Ano:** 2025
 
-## 📑 Índice
-
-1. [🚀 Visão Geral](#🚀-visão-geral)
-2. [📁 Estrutura do Projeto](#📁-estrutura-do-projeto)
-3. [🏗️ Arquitetura do Sistema](#🏗️-arquitetura-do-sistema)
-4. [🔧 Hardware e Circuito](#🔧-hardware-e-circuito)
-5. [💻 Detalhamento do Sistema](#💻-detalhamento-do-sistema)
-6. [🛠️ Como Executar o Projeto](#🛠️-como-executar-o-projeto)
-7. [🤝 Contribuição](#🤝-contribuição)
-8. [📄 Licença](#📄-licença)
-
 ## 🚀 Visão Geral
 
 O sistema permite o monitoramento em tempo real da umidade do solo e o controle automatizado de uma válvula de solenoide para irrigação. A decisão de irrigar é tomada de forma inteligente, cruzando dados locais (sensor) com dados externos (previsão de chuva via API OpenWeather).
