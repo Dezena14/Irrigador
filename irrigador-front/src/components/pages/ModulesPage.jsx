@@ -8,8 +8,8 @@ import WeatherPanel from "../modules/WeatherPanel";
 import {
     createModule,
     fetchModuleHistory,
-    toggleModuleManualOverride,
     deleteModule,
+    patchModule,
 } from "../../api/services";
 
 export const ModulesPage = ({
@@ -61,11 +61,10 @@ export const ModulesPage = ({
 
     const handleToggleManual = async (id) => {
         try {
-            const updatedModule = await toggleModuleManualOverride(id);
+            const module = modules.find(m => m.id === id);
 
-            setModules((prevModules) =>
-                prevModules.map((m) => (m.id === id ? updatedModule : m))
-            );
+            const newStatus = module.manualOverride === "on" ? "off" : "on";
+            const updatedModule = await patchModule(id, { manualOverride: newStatus });
 
             const msg =
                 updatedModule.manualOverride === "on"

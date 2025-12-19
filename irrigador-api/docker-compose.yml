@@ -1,7 +1,7 @@
 services:
   # Servico do Banco de Dados PostgreSQL
   postgres-db:
-    image: postgres:latest
+    image: postgres:16
     container_name: postgres-db
     restart: always
     environment:
